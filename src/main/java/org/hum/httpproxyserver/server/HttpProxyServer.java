@@ -9,7 +9,7 @@ import java.util.concurrent.TimeUnit;
 
 public class HttpProxyServer {
 
-	private static final ThreadPoolExecutor THREAD_POOL = new ThreadPoolExecutor(50, 100, 30, TimeUnit.SECONDS, new LinkedBlockingDeque<Runnable>());
+	private static final ThreadPoolExecutor THREAD_POOL = new ThreadPoolExecutor(150, 400, 30, TimeUnit.SECONDS, new LinkedBlockingDeque<Runnable>());
 	private int LISTENING_PORT = 8002;
 	private ServerSocket server;
 	
@@ -19,8 +19,10 @@ public class HttpProxyServer {
 	
 	public void start() throws IOException {
 		server = new ServerSocket(LISTENING_PORT);
-		Socket socket = server.accept();
-		THREAD_POOL.execute(new ProxyTask(socket));
+		while (true) {
+			Socket socket = server.accept();
+			THREAD_POOL.execute(new ProxyTask(socket));
+		}
 	}
 	
 	public void stop() throws IOException {
