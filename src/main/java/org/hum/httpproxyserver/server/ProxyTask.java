@@ -6,6 +6,8 @@ import java.net.Socket;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.hum.httpproxyserver.component.WebHelper;
 import org.hum.httpproxyserver.message.HttpRequest;
@@ -31,9 +33,7 @@ public class ProxyTask implements Runnable {
 			HttpRequest request = WebHelper.parse(inputStream);
 			System.out.println(request);
 			
-			// local -> remote
 			remote = new Socket(request.getHost(), request.getPort());
-			ThreadPool.execute(new PipeChannel(local, remote));
 			
 			// process https
 			if ("CONNECT".equals(request.getMethod())) {
@@ -43,9 +43,8 @@ public class ProxyTask implements Runnable {
 				remote.getOutputStream().write(request.getFullText().getBytes());
 				remote.getOutputStream().flush();
 			}
-			
-			// remote -> local
-			ThreadPool.execute(new PipeChannel(remote, local));
+
+			PipeChannel.buildPipe(local, remote);
 			
 		} catch (IOException e) {
 			e.printStackTrace();
